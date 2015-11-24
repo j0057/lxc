@@ -1,0 +1,42 @@
+- hosts: localhost
+  vars:
+    lxc_arch:
+      packages:
+      - htop
+      - tmux
+      - openssh
+      - elasticsearch
+      - logstash
+      - kibana
+      enabled_units:
+      - sshd.service
+      - elasticsearch.service
+      - kibana.service
+      disabled_units:
+      - systemd-udevd.service
+      - systemd-udevd-control.socket
+      - systemd-udevd-kernel.socket
+      - proc-sys-fs-binfmt_misc.automount
+      - getty@lxc-tty1.service
+      - getty@lxc-tty2.service
+      - getty@lxc-tty3.service
+      - getty@lxc-tty4.service
+      - getty@lxc-tty5.service
+      - getty@lxc-tty6.service
+  tasks:
+  - name: create lxc-arch container
+    lxc_container:
+      name: lxc-arch
+      backing_store: dir
+      template: /usr/share/lxc/templates/lxc-archlinux
+      template_options: "--enable_units {{ lxc_arch.enabled_units | join(',') }} --disable_units {{ lxc_arch.disabled_units | join(',') }} --packages {{ lxc_arch.packages | join(',') }}"
+      container_config:
+      - lxc.network.type=veth
+      - lxc.network.name=net0
+      - lxc.network.link=lxc0
+      - lxc.network.flags=up
+      - lxc.network.ipv4=10.103.0.2/24
+      - lxc.network.ipv4.gateway=10.103.0.1
+      - lxc.pts=1024
+      - lxc.tty=0
+      state: started
